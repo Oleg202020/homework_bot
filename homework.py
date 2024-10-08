@@ -47,9 +47,12 @@ def check_tokens():
     missing_tokens = []
     missing_tokens = [missing_tokens for name in tokens if not globals()[name]]
     if missing_tokens:
-        logger.critical('Отсутствует обязательная переменная окружения')
-        raise ValueError('Ошибка проверки переменных окружения')
-    logger.debug(f'Проверка переменных окружения пройдена{missing_tokens}')
+        message = (
+            f'Отсутствует обязательная переменная окружения{missing_tokens}'
+        )
+        logger.critical(message)
+        raise ValueError(message)
+    logger.debug(f'Проверка переменных окружения пройдена')
 
 
 def send_message(bot, message):
@@ -81,7 +84,11 @@ def get_api_answer(timestamp):
             params=payload
         )
     except requests.RequestException as error:
-        raise ConnectionError(f'Сбой при запросе к API: {error}')
+        raise ConnectionError(
+            f'Запрос был сделан к {ENDPOINT}.'
+            f'Сбой при запросе к API: {error}'
+            f'Параметры запроса{payload}'
+        )
     if homework_statuses.status_code != HTTPStatus.OK:
         error_message = (
             f'Запрос был сделан к {ENDPOINT}. '
@@ -109,7 +116,7 @@ def check_response(response):
     homeworks = response['homeworks']
     if not isinstance(homeworks, list):
         raise TypeError(
-            f'Ответ сервера не содержит списка, со значением ключа homeworks'
+            'Ответ сервера не содержит списка, со значением ключа homeworks'
             f'вместо ожидаемого списка был найден тип данных {type(homeworks)}'
         )
     logger.info('Проверка ответа API пройдена')
@@ -125,10 +132,10 @@ def parse_status(homework):
     HOMEWORK_VERDICTS.
     """
     logger.info('начало исполнения функции parse_status')
-    homework_name = homework.get('homework_name')
-    status_homework = homework.get('status')
     if 'homework_name' not in homework:
-        raise KeyError('Пустое значение ключа.')
+        raise KeyError('В словаре homework нет ключа "homework_name"')
+    homework_name = homework['homework_name']
+    status_homework = homework['status']
     if status_homework not in HOMEWORK_VERDICTS:
         raise ValueError(
             'Недокументированное статуса для ключа домашней работы.'
@@ -173,7 +180,7 @@ def main():
             logger.debug(f'Ошибка сетевого подключения:{error}')
         except Exception as error:
             message = f'Сбой в работе программы: {error}'
-            logger.error(message)
+            logger.exception(message)
             if old_message != message:
                 with suppress(
                     telebot.apihelper.ApiTelegramException,
