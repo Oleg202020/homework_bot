@@ -52,7 +52,7 @@ def check_tokens():
         )
         logger.critical(message)
         raise ValueError(message)
-    logger.debug(f'Проверка переменных окружения пройдена')
+    logger.debug('Проверка переменных окружения пройдена')
 
 
 def send_message(bot, message):
