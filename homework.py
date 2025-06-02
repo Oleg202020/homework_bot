@@ -42,13 +42,13 @@ handler.setFormatter(format)
 
 
 def check_tokens():
-    """Проверяет доступность переменных окружения, необходимые для работы."""
+    """Проверяет наличие обязательных переменных окружения."""
     tokens = ('PRACTICUM_TOKEN', 'TELEGRAM_TOKEN', 'TELEGRAM_CHAT_ID')
-    missing_tokens = []
-    missing_tokens = [missing_tokens for name in tokens if not globals()[name]]
+    missing_tokens = [name for name in tokens if not globals().get(name)]
     if missing_tokens:
+        missing = ', '.join(missing_tokens)
         message = (
-            f'Отсутствует обязательная переменная окружения{missing_tokens}'
+            f'Отсутствует обязательная(ые) переменная(ые) окружения: {missing}'
         )
         logger.critical(message)
         raise ValueError(message)
@@ -135,7 +135,7 @@ def parse_status(homework):
     if 'homework_name' not in homework:
         raise KeyError('В словаре homework нет ключа "homework_name"')
     homework_name = homework['homework_name']
-    status_homework = homework['status']
+    status_homework = homework.get('status')
     if status_homework not in HOMEWORK_VERDICTS:
         raise ValueError(
             'Недокументированное статуса для ключа домашней работы.'
